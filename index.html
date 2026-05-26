@@ -357,12 +357,12 @@
       <h2><span class="pension-tab tab-common">공통</span> 기본 정보</h2>
       <div class="input-grid">
         <div class="input-item">
-          <label>생년월일 <span class="hint">예: 1970-01-01</span></label>
-          <input type="date" id="i_birth" value="1970-01-01">
+          <label>생년월일 <span class="hint">예: 1972-08-05</span></label>
+          <input type="date" id="i_birth" value="1972-08-05">
         </div>
         <div class="input-item">
           <label>은퇴 나이 <span class="hint">수령 개시 시점</span></label>
-          <input type="number" id="i_retire_age" value="65" min="55" max="80">
+          <input type="number" id="i_retire_age" value="60" min="55" max="80">
         </div>
         <div class="input-item">
           <label>기대수명 <span class="hint">한국 평균 81~86</span></label>
@@ -384,15 +384,15 @@
       <div class="input-grid">
         <div class="input-item">
           <label>현재 가입기간 <span class="hint">20년=240개월</span></label>
-          <input type="number" id="i_nps_months" value="240" min="0" step="12"><span class="suffix">개월</span>
+          <input type="number" id="i_nps_months" value="311" min="0" step="12"><span class="suffix">개월</span>
         </div>
         <div class="input-item">
           <label>월 평균소득 (B값) <span class="hint">가입기간 평균</span></label>
-          <input type="number" id="i_nps_income" value="3500000" step="100000">
+          <input type="number" id="i_nps_income" value="5649949" step="100000">
         </div>
         <div class="input-item">
           <label>수령 개시 나이 <span class="hint">60(70%) ~ 70(136%)</span></label>
-          <input type="number" id="i_nps_start" value="65" min="60" max="70">
+          <input type="number" id="i_nps_start" value="60" min="60" max="70">
         </div>
         <div class="input-item">
           <label>배우자 수 <span class="hint">부양가족 연금</span></label>
@@ -410,11 +410,11 @@
       <div class="input-grid">
         <div class="input-item">
           <label>현재 적립금</label>
-          <input type="number" id="i_rp_current" value="100000000" step="1000000">
+          <input type="number" id="i_rp_current" value="191000000" step="1000000">
         </div>
         <div class="input-item">
           <label>월 추가 납입금</label>
-          <input type="number" id="i_rp_monthly" value="500000" step="50000">
+          <input type="number" id="i_rp_monthly" value="730000" step="50000">
         </div>
         <div class="input-item">
           <label>운용 수익률 <span class="hint">월복리 적용</span></label>
@@ -422,13 +422,13 @@
         </div>
         <div class="input-item">
           <label>수령 수익률</label>
-          <input type="number" id="i_rp_pay_yield" value="3.0" step="0.1"><span class="suffix">%</span>
+          <input type="number" id="i_rp_pay_yield" value="4.0" step="0.1"><span class="suffix">%</span>
         </div>
         <div class="input-item">
           <label>수령 방식</label>
           <select id="i_rp_type">
             <option value="기간형">기간형 (N년 분할)</option>
-            <option value="종신형">종신형 (기대수명까지)</option>
+            <option value="종신형" selected>종신형 (기대수명까지)</option>
           </select>
         </div>
         <div class="input-item">
@@ -451,7 +451,7 @@
         </div>
         <div class="input-item">
           <label>가입 나이 <span class="hint">만 55세 이상</span></label>
-          <input type="number" id="i_hp_age" value="65" min="55" max="100">
+          <input type="number" id="i_hp_age" value="60" min="55" max="100">
         </div>
         <div class="input-item">
           <label>지급 방식</label>
