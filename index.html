@@ -98,6 +98,20 @@
       border-color: #6B21A8;
       box-shadow: 0 0 0 3px rgba(107,33,168,0.1);
     }
+    /* 금액 입력 — 오른쪽 정렬 + 숫자 키패드 */
+    .input-item input.money {
+      text-align: right;
+      font-variant-numeric: tabular-nums;
+      font-weight: 600;
+      color: #1a2b4a;
+    }
+    .input-item .currency-suffix {
+      display: inline-block;
+      margin-left: 4px;
+      color: #6B7280;
+      font-size: 11px;
+      font-weight: 600;
+    }
     .input-item .suffix {
       display: inline-block;
       margin-left: 4px;
@@ -370,7 +384,7 @@
         </div>
         <div class="input-item">
           <label>월 필요 생활비 <span class="hint">부부 2인 보통 ~300만</span></label>
-          <input type="number" id="i_need" value="3000000" step="100000">
+          <input type="text" inputmode="numeric" id="i_need" class="money" value="3000000"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>물가상승률 <span class="hint">한국 평균 2.0~3.0%</span></label>
@@ -388,7 +402,7 @@
         </div>
         <div class="input-item">
           <label>월 평균소득 (B값) <span class="hint">가입기간 평균</span></label>
-          <input type="number" id="i_nps_income" value="5649949" step="100000">
+          <input type="text" inputmode="numeric" id="i_nps_income" class="money" value="5649949"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>수령 개시 나이 <span class="hint">60(70%) ~ 70(136%)</span></label>
@@ -410,11 +424,11 @@
       <div class="input-grid">
         <div class="input-item">
           <label>현재 적립금</label>
-          <input type="number" id="i_rp_current" value="191000000" step="1000000">
+          <input type="text" inputmode="numeric" id="i_rp_current" class="money" value="191000000"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>월 추가 납입금</label>
-          <input type="number" id="i_rp_monthly" value="730000" step="50000">
+          <input type="text" inputmode="numeric" id="i_rp_monthly" class="money" value="730000"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>운용 수익률 <span class="hint">월복리 적용</span></label>
@@ -447,7 +461,7 @@
       <div class="input-grid">
         <div class="input-item">
           <label>주택가격 (공시가) <span class="hint">12억 이하</span></label>
-          <input type="number" id="i_hp_price" value="500000000" step="10000000">
+          <input type="text" inputmode="numeric" id="i_hp_price" class="money" value="500000000"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>가입 나이 <span class="hint">만 55세 이상</span></label>
@@ -487,27 +501,27 @@
         </div>
         <div class="input-item">
           <label>배우자 국민연금 (월) <span class="hint">없으면 0</span></label>
-          <input type="number" id="i_bp_spouse_nps" value="0" step="10000">
+          <input type="text" inputmode="numeric" id="i_bp_spouse_nps" class="money" value="0"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>근로/사업 소득 (월) <span class="hint">은퇴 후</span></label>
-          <input type="number" id="i_bp_work" value="0" step="100000">
+          <input type="text" inputmode="numeric" id="i_bp_work" class="money" value="0"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>기타 소득 (월) <span class="hint">임대/이자 등</span></label>
-          <input type="number" id="i_bp_etc" value="0" step="10000">
+          <input type="text" inputmode="numeric" id="i_bp_etc" class="money" value="0"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>금융자산 <span class="hint">2,000만 공제</span></label>
-          <input type="number" id="i_bp_fin" value="50000000" step="1000000">
+          <input type="text" inputmode="numeric" id="i_bp_fin" class="money" value="50000000"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>자동차 가액</label>
-          <input type="number" id="i_bp_car" value="30000000" step="1000000">
+          <input type="text" inputmode="numeric" id="i_bp_car" class="money" value="30000000"><span class="currency-suffix">원</span>
         </div>
         <div class="input-item">
           <label>기타 부채</label>
-          <input type="number" id="i_bp_debt" value="0" step="1000000">
+          <input type="text" inputmode="numeric" id="i_bp_debt" class="money" value="0"><span class="currency-suffix">원</span>
         </div>
       </div>
     </section>
@@ -667,11 +681,47 @@
     };
 
     // ════════════════════════════════════════════════════
-    // 입력값 수집
+    // 금액 입력 자동 포맷팅 (3자리 쉼표)
+    // ════════════════════════════════════════════════════
+    function formatMoneyInput(el) {
+      const cursorPos = el.selectionStart;
+      const oldVal = el.value;
+      // 숫자만 추출
+      const numeric = el.value.replace(/[^\d]/g, '');
+      if (!numeric) { el.value = ''; return; }
+      // 천 단위 쉼표 포맷
+      const formatted = parseInt(numeric, 10).toLocaleString('ko-KR');
+      el.value = formatted;
+      // 커서 위치 보정 (쉼표 추가로 인한 길이 변화)
+      const diff = formatted.length - oldVal.length;
+      try {
+        el.setSelectionRange(cursorPos + diff, cursorPos + diff);
+      } catch (e) { /* 일부 환경에서 setSelectionRange 미지원 */ }
+    }
+
+    // 모든 .money 클래스 필드 초기 포맷팅 + 이벤트 바인딩
+    function initMoneyInputs() {
+      document.querySelectorAll('input.money').forEach(el => {
+        // 초기 값 포맷팅
+        const num = parseInt(el.value.replace(/[^\d]/g, ''), 10);
+        if (!isNaN(num)) el.value = num.toLocaleString('ko-KR');
+        else el.value = '';
+        // 입력 시 자동 포맷
+        el.addEventListener('input', () => formatMoneyInput(el));
+        // 포커스 시 전체 선택 (편집 편의성)
+        el.addEventListener('focus', () => el.select());
+      });
+    }
+
+    // ════════════════════════════════════════════════════
+    // 입력값 수집 (쉼표 제거 후 숫자 변환)
     // ════════════════════════════════════════════════════
     function getInputs() {
       const $ = (id) => document.getElementById(id);
-      const num = (id) => parseFloat($(id).value) || 0;
+      const num = (id) => {
+        const v = String($(id).value || '').replace(/,/g, '');
+        return parseFloat(v) || 0;
+      };
       const str = (id) => $(id).value;
 
       // 현재 나이 계산
@@ -1068,6 +1118,9 @@
         }
       });
     }
+
+    // 금액 입력 자동 포맷팅 초기화 (render 이벤트 바인딩 이전에 실행)
+    initMoneyInputs();
 
     // 모든 입력 변경 시 자동 재계산
     document.querySelectorAll('input, select').forEach(el => {
