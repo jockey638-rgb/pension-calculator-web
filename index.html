@@ -219,8 +219,20 @@
       width: 100%;
       border-collapse: collapse;
       font-size: 12px;
-      min-width: 760px;
+      min-width: 920px;
+      table-layout: fixed;   /* ⭐ colspan 사용 시 컬럼 정렬 유지 */
     }
+    /* 10개 컬럼 명시적 너비 — 모든 행에서 동일 정렬 보장 */
+    table.cashflow-table col.col-year     { width: 60px; }
+    table.cashflow-table col.col-age      { width: 55px; }
+    table.cashflow-table col.col-nps      { width: 95px; }
+    table.cashflow-table col.col-rp       { width: 95px; }
+    table.cashflow-table col.col-hp       { width: 95px; }
+    table.cashflow-table col.col-bp       { width: 95px; }
+    table.cashflow-table col.col-sum      { width: 105px; }
+    table.cashflow-table col.col-need     { width: 105px; }
+    table.cashflow-table col.col-diff     { width: 105px; }
+    table.cashflow-table col.col-ratio    { width: 90px; }
     table.cashflow-table thead th {
       background: #F8FAFD;
       color: #1a2b4a;
@@ -290,11 +302,14 @@
     table.cashflow-table tfoot td.label-col {
       text-align: center;
       line-height: 1.3;
+      white-space: normal;       /* colspan=2 좁은 셀 안에서 줄바꿈 허용 */
+      font-size: 11.5px;
+      padding: 8px 6px;
     }
     table.cashflow-table tfoot td.label-col .foot-unit {
       display: block;
       font-weight: 500;
-      font-size: 10.5px;
+      font-size: 10px;
       color: #6B7280;
       margin-top: 2px;
     }
@@ -610,6 +625,18 @@
       <h2>📋 통합 노후 현금흐름 표 (연도별)</h2>
       <div class="cashflow-table-wrap">
         <table class="cashflow-table">
+          <colgroup>
+            <col class="col-year">
+            <col class="col-age">
+            <col class="col-nps">
+            <col class="col-rp">
+            <col class="col-hp">
+            <col class="col-bp">
+            <col class="col-sum">
+            <col class="col-need">
+            <col class="col-diff">
+            <col class="col-ratio">
+          </colgroup>
           <thead>
             <tr>
               <th>년도</th>
