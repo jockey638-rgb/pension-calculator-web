@@ -5,7 +5,7 @@
 
 ## 🌐 라이브 데모
 
-👉 **[통합연금 계산기 사용하기](https://jockey638.github.io/pension-calculator-web/)** ← (GitHub Pages 활성화 후 자동 접속 가능)
+👉 **[통합연금 계산기 사용하기](https://jockey638-rgb.github.io/pension-calculator-web/)** ← (GitHub Pages 활성화 후 자동 접속 가능)
 
 ## 📋 주요 기능
 
@@ -27,7 +27,7 @@
 
 ## 🚀 사용 방법
 
-1. 위 [라이브 데모](https://jockey638.github.io/pension-calculator-web/) 링크 클릭
+1. 위 [라이브 데모](https://jockey638-rgb.github.io/pension-calculator-web/) 링크 클릭
 2. 본인 정보 입력 (생년월일, 가입기간, 소득, 자산 등)
 3. 자동으로 4대 연금 월 수령액 + 충당률 계산
 4. 60~95세 노후 현금흐름 차트 확인
