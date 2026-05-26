@@ -1,0 +1,872 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0">
+  <meta name="theme-color" content="#6B21A8">
+  <title>🧮 통합 연금 계산기 (4대 연금)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { -webkit-text-size-adjust: 100%; }
+    body {
+      font-family: 'Malgun Gothic', '맑은 고딕', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #e8edf3 100%);
+      color: #2C3E50;
+      padding: 16px;
+      font-size: 14px;
+      line-height: 1.5;
+    }
+    .container { max-width: 1280px; margin: 0 auto; }
+
+    /* ───── 헤더 ───── */
+    header {
+      background: linear-gradient(135deg, #6B21A8 0%, #9333EA 100%);
+      color: white;
+      padding: 22px 28px;
+      border-radius: 14px;
+      margin-bottom: 18px;
+      box-shadow: 0 4px 16px rgba(107,33,168,0.25);
+    }
+    header h1 { font-size: 24px; margin-bottom: 6px; }
+    header .subtitle { font-size: 13px; opacity: 0.9; }
+
+    /* ───── 섹션 카드 ───── */
+    section.card {
+      background: white;
+      border-radius: 12px;
+      padding: 20px 24px;
+      margin-bottom: 16px;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+    }
+    section.card h2 {
+      font-size: 17px;
+      color: #1a2b4a;
+      margin-bottom: 14px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #ECEFF4;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .pension-tab {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      font-weight: bold;
+      color: white;
+      margin-right: 6px;
+    }
+    .tab-nps { background: #0F766E; }
+    .tab-rp  { background: #2F5496; }
+    .tab-hp  { background: #C45911; }
+    .tab-bp  { background: #059669; }
+    .tab-common { background: #6B21A8; }
+
+    /* ───── 입력 그리드 ───── */
+    .input-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 12px 18px;
+    }
+    .input-item label {
+      display: block;
+      font-size: 12.5px;
+      font-weight: 600;
+      color: #4A5568;
+      margin-bottom: 5px;
+    }
+    .input-item label .hint {
+      font-size: 10.5px;
+      color: #94A3B8;
+      font-weight: normal;
+      margin-left: 4px;
+    }
+    .input-item input, .input-item select {
+      width: 100%;
+      padding: 9px 11px;
+      border: 1.5px solid #CBD5E1;
+      border-radius: 7px;
+      font-size: 13.5px;
+      font-family: inherit;
+      transition: border 0.15s;
+      background: #FFFBEB;
+    }
+    .input-item input:focus, .input-item select:focus {
+      outline: none;
+      border-color: #6B21A8;
+      box-shadow: 0 0 0 3px rgba(107,33,168,0.1);
+    }
+    .input-item .suffix {
+      display: inline-block;
+      margin-left: 4px;
+      color: #94A3B8;
+      font-size: 11px;
+    }
+
+    /* ───── 결과 카드 (4대 연금) ───── */
+    .results-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 16px;
+    }
+    .result-card {
+      padding: 16px 18px;
+      border-radius: 10px;
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+    .result-card .icon { font-size: 18px; margin-bottom: 6px; }
+    .result-card .label { font-size: 12px; opacity: 0.95; }
+    .result-card .value {
+      font-size: 22px;
+      font-weight: 800;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .result-card .unit { font-size: 13px; opacity: 0.9; margin-left: 2px; }
+    .result-card .sub { font-size: 11px; opacity: 0.85; margin-top: 4px; }
+    .card-nps { background: linear-gradient(135deg, #0F766E 0%, #14B8A6 100%); }
+    .card-rp  { background: linear-gradient(135deg, #2F5496 0%, #5B9BD5 100%); }
+    .card-hp  { background: linear-gradient(135deg, #C45911 0%, #ED7D31 100%); }
+    .card-bp  { background: linear-gradient(135deg, #059669 0%, #10B981 100%); }
+
+    /* ───── 종합 카드 ───── */
+    .summary-card {
+      background: linear-gradient(135deg, #6B21A8 0%, #9333EA 100%);
+      color: white;
+      padding: 22px 26px;
+      border-radius: 14px;
+      box-shadow: 0 4px 20px rgba(107,33,168,0.25);
+      margin-bottom: 16px;
+    }
+    .summary-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr 1fr;
+      gap: 16px;
+    }
+    .summary-item .label { font-size: 12px; opacity: 0.85; }
+    .summary-item .value {
+      font-size: 26px;
+      font-weight: 800;
+      margin-top: 4px;
+      font-variant-numeric: tabular-nums;
+    }
+    .summary-item .sub { font-size: 11px; opacity: 0.8; margin-top: 2px; }
+
+    /* 충당률 게이지 */
+    .gauge-wrap { margin-top: 14px; }
+    .gauge-bar {
+      width: 100%;
+      height: 18px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 999px;
+      overflow: hidden;
+      position: relative;
+    }
+    .gauge-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #34D399, #10B981);
+      transition: width 0.5s;
+    }
+    .gauge-fill.warn { background: linear-gradient(90deg, #FBBF24, #F59E0B); }
+    .gauge-fill.bad  { background: linear-gradient(90deg, #F87171, #EF4444); }
+    .gauge-label { text-align: center; margin-top: 6px; font-size: 12px; }
+
+    .verdict {
+      margin-top: 14px;
+      padding: 12px 16px;
+      background: rgba(255,255,255,0.15);
+      border-radius: 8px;
+      font-size: 14px;
+      text-align: center;
+      font-weight: bold;
+    }
+
+    /* ───── 차트 ───── */
+    .chart-wrap {
+      position: relative;
+      width: 100%;
+      height: 380px;
+    }
+
+    /* ───── 가이드 ───── */
+    .guide-list { list-style: none; }
+    .guide-list li {
+      padding: 8px 0;
+      font-size: 12.5px;
+      color: #4A5568;
+      border-bottom: 1px dashed #ECEFF4;
+    }
+    .guide-list li:last-child { border-bottom: none; }
+    .guide-list li b { color: #1a2b4a; }
+    .guide-list .label-chip {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 4px;
+      font-size: 11px;
+      font-weight: bold;
+      color: white;
+      margin-right: 6px;
+    }
+
+    footer {
+      text-align: center;
+      padding: 18px 12px;
+      color: #94A3B8;
+      font-size: 12px;
+    }
+
+    /* ───── 반응형 ───── */
+    @media (max-width: 1024px) {
+      .results-grid { grid-template-columns: repeat(2, 1fr); }
+      .summary-row { grid-template-columns: 1fr; gap: 12px; }
+    }
+    @media (max-width: 640px) {
+      body { padding: 10px; font-size: 13px; }
+      header { padding: 16px 18px; }
+      header h1 { font-size: 19px; }
+      header .subtitle { font-size: 11.5px; }
+      section.card { padding: 14px 16px; }
+      section.card h2 { font-size: 15px; }
+      .input-grid { grid-template-columns: 1fr; gap: 10px; }
+      .input-item input, .input-item select { padding: 11px; font-size: 14px; }
+      .results-grid { grid-template-columns: repeat(2, 1fr); gap: 8px; }
+      .result-card { padding: 12px 14px; }
+      .result-card .value { font-size: 17px; }
+      .result-card .label { font-size: 11px; }
+      .summary-card { padding: 16px 18px; }
+      .summary-item .value { font-size: 21px; }
+      .chart-wrap { height: 320px; }
+    }
+    @media (max-width: 380px) {
+      .results-grid { grid-template-columns: 1fr; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- 헤더 -->
+    <header>
+      <h1>🧮 통합 연금 계산기</h1>
+      <div class="subtitle">국민연금 + 퇴직연금 + 주택연금 + 기초연금 — 4대 연금 통합 시뮬레이션</div>
+    </header>
+
+    <!-- 입력 섹션 -->
+    <section class="card">
+      <h2><span class="pension-tab tab-common">공통</span> 기본 정보</h2>
+      <div class="input-grid">
+        <div class="input-item">
+          <label>생년월일 <span class="hint">예: 1970-01-01</span></label>
+          <input type="date" id="i_birth" value="1970-01-01">
+        </div>
+        <div class="input-item">
+          <label>은퇴 나이 <span class="hint">수령 개시 시점</span></label>
+          <input type="number" id="i_retire_age" value="65" min="55" max="80">
+        </div>
+        <div class="input-item">
+          <label>기대수명 <span class="hint">한국 평균 81~86</span></label>
+          <input type="number" id="i_life_age" value="90" min="65" max="110">
+        </div>
+        <div class="input-item">
+          <label>월 필요 생활비 <span class="hint">부부 2인 보통 ~300만</span></label>
+          <input type="number" id="i_need" value="3000000" step="100000">
+        </div>
+        <div class="input-item">
+          <label>물가상승률 <span class="hint">한국 평균 2.0~3.0%</span></label>
+          <input type="number" id="i_inflation" value="2.5" step="0.1"><span class="suffix">%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="pension-tab tab-nps">국민연금</span> 가입 정보</h2>
+      <div class="input-grid">
+        <div class="input-item">
+          <label>현재 가입기간 <span class="hint">20년=240개월</span></label>
+          <input type="number" id="i_nps_months" value="240" min="0" step="12"><span class="suffix">개월</span>
+        </div>
+        <div class="input-item">
+          <label>월 평균소득 (B값) <span class="hint">가입기간 평균</span></label>
+          <input type="number" id="i_nps_income" value="3500000" step="100000">
+        </div>
+        <div class="input-item">
+          <label>수령 개시 나이 <span class="hint">60(70%) ~ 70(136%)</span></label>
+          <input type="number" id="i_nps_start" value="65" min="60" max="70">
+        </div>
+        <div class="input-item">
+          <label>배우자 수 <span class="hint">부양가족 연금</span></label>
+          <input type="number" id="i_nps_spouse" value="1" min="0" max="1">
+        </div>
+        <div class="input-item">
+          <label>자녀/부모 수 <span class="hint">19세 미만/60세 이상</span></label>
+          <input type="number" id="i_nps_dep" value="0" min="0" max="10">
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="pension-tab tab-rp">퇴직연금</span> 적립 정보</h2>
+      <div class="input-grid">
+        <div class="input-item">
+          <label>현재 적립금</label>
+          <input type="number" id="i_rp_current" value="100000000" step="1000000">
+        </div>
+        <div class="input-item">
+          <label>월 추가 납입금</label>
+          <input type="number" id="i_rp_monthly" value="500000" step="50000">
+        </div>
+        <div class="input-item">
+          <label>운용 수익률 <span class="hint">월복리 적용</span></label>
+          <input type="number" id="i_rp_yield" value="5.0" step="0.1"><span class="suffix">%</span>
+        </div>
+        <div class="input-item">
+          <label>수령 수익률</label>
+          <input type="number" id="i_rp_pay_yield" value="3.0" step="0.1"><span class="suffix">%</span>
+        </div>
+        <div class="input-item">
+          <label>수령 방식</label>
+          <select id="i_rp_type">
+            <option value="기간형">기간형 (N년 분할)</option>
+            <option value="종신형">종신형 (기대수명까지)</option>
+          </select>
+        </div>
+        <div class="input-item">
+          <label>수령 기간 <span class="hint">기간형일 때</span></label>
+          <input type="number" id="i_rp_dur" value="25" min="5" max="40"><span class="suffix">년</span>
+        </div>
+        <div class="input-item">
+          <label>연금소득세율 <span class="hint">5.5/4.4/3.3</span></label>
+          <input type="number" id="i_rp_tax" value="5.5" step="0.1"><span class="suffix">%</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="pension-tab tab-hp">주택연금</span> 정보</h2>
+      <div class="input-grid">
+        <div class="input-item">
+          <label>주택가격 (공시가) <span class="hint">12억 이하</span></label>
+          <input type="number" id="i_hp_price" value="500000000" step="10000000">
+        </div>
+        <div class="input-item">
+          <label>가입 나이 <span class="hint">만 55세 이상</span></label>
+          <input type="number" id="i_hp_age" value="65" min="55" max="100">
+        </div>
+        <div class="input-item">
+          <label>지급 방식</label>
+          <select id="i_hp_type">
+            <option value="종신지급">종신지급 (평생)</option>
+            <option value="확정기간">확정기간 (N년)</option>
+          </select>
+        </div>
+        <div class="input-item">
+          <label>확정기간 <span class="hint">확정기간형일 때</span></label>
+          <input type="number" id="i_hp_dur" value="20" min="10" max="30"><span class="suffix">년</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2><span class="pension-tab tab-bp">기초연금</span> 자격 판정 정보</h2>
+      <div class="input-grid">
+        <div class="input-item">
+          <label>거주 지역</label>
+          <select id="i_bp_region">
+            <option value="대도시">대도시 (공제 1.35억)</option>
+            <option value="중소도시">중소도시 (공제 0.85억)</option>
+            <option value="농어촌">농어촌 (공제 0.725억)</option>
+          </select>
+        </div>
+        <div class="input-item">
+          <label>가구 유형</label>
+          <select id="i_bp_household">
+            <option value="단독">단독</option>
+            <option value="부부" selected>부부</option>
+          </select>
+        </div>
+        <div class="input-item">
+          <label>배우자 국민연금 (월) <span class="hint">없으면 0</span></label>
+          <input type="number" id="i_bp_spouse_nps" value="0" step="10000">
+        </div>
+        <div class="input-item">
+          <label>근로/사업 소득 (월) <span class="hint">은퇴 후</span></label>
+          <input type="number" id="i_bp_work" value="0" step="100000">
+        </div>
+        <div class="input-item">
+          <label>기타 소득 (월) <span class="hint">임대/이자 등</span></label>
+          <input type="number" id="i_bp_etc" value="0" step="10000">
+        </div>
+        <div class="input-item">
+          <label>금융자산 <span class="hint">2,000만 공제</span></label>
+          <input type="number" id="i_bp_fin" value="50000000" step="1000000">
+        </div>
+        <div class="input-item">
+          <label>자동차 가액</label>
+          <input type="number" id="i_bp_car" value="30000000" step="1000000">
+        </div>
+        <div class="input-item">
+          <label>기타 부채</label>
+          <input type="number" id="i_bp_debt" value="0" step="1000000">
+        </div>
+      </div>
+    </section>
+
+    <!-- 결과 섹션 -->
+    <section class="card">
+      <h2>💰 4대 연금 월 수령액 (은퇴 시점 기준)</h2>
+      <div class="results-grid">
+        <div class="result-card card-nps">
+          <div class="icon">🏛️</div>
+          <div class="label">국민연금</div>
+          <div class="value"><span id="r_nps">0</span><span class="unit">원</span></div>
+          <div class="sub" id="r_nps_sub">—</div>
+        </div>
+        <div class="result-card card-rp">
+          <div class="icon">💼</div>
+          <div class="label">퇴직연금 (세후)</div>
+          <div class="value"><span id="r_rp">0</span><span class="unit">원</span></div>
+          <div class="sub" id="r_rp_sub">—</div>
+        </div>
+        <div class="result-card card-hp">
+          <div class="icon">🏠</div>
+          <div class="label">주택연금</div>
+          <div class="value"><span id="r_hp">0</span><span class="unit">원</span></div>
+          <div class="sub" id="r_hp_sub">—</div>
+        </div>
+        <div class="result-card card-bp">
+          <div class="icon">🪙</div>
+          <div class="label">기초연금 (가구)</div>
+          <div class="value"><span id="r_bp">0</span><span class="unit">원</span></div>
+          <div class="sub" id="r_bp_sub">—</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 종합 진단 -->
+    <section class="summary-card">
+      <div class="summary-row">
+        <div class="summary-item">
+          <div class="label">💎 월 합계 (4대)</div>
+          <div class="value"><span id="r_total">0</span> <span style="font-size:14px;">원</span></div>
+          <div class="sub">월 단위 합산</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">📌 월 필요 생활비</div>
+          <div class="value"><span id="r_need">0</span> <span style="font-size:14px;">원</span></div>
+          <div class="sub">현재가치 기준</div>
+        </div>
+        <div class="summary-item">
+          <div class="label">⚖️ 잉여 / 부족</div>
+          <div class="value"><span id="r_diff">0</span> <span style="font-size:14px;">원</span></div>
+          <div class="sub" id="r_diff_sub">—</div>
+        </div>
+      </div>
+      <div class="gauge-wrap">
+        <div class="gauge-bar"><div class="gauge-fill" id="r_gauge" style="width:0%"></div></div>
+        <div class="gauge-label">충당률 <b id="r_gauge_text">0%</b></div>
+      </div>
+      <div class="verdict" id="r_verdict">—</div>
+    </section>
+
+    <!-- 통합 현금흐름 차트 -->
+    <section class="card">
+      <h2>📊 통합 노후 현금흐름 (60~95세, 물가 반영)</h2>
+      <div class="chart-wrap">
+        <canvas id="cashflowChart"></canvas>
+      </div>
+    </section>
+
+    <!-- 가이드 -->
+    <section class="card">
+      <h2>📖 사용 가이드</h2>
+      <ul class="guide-list">
+        <li><span class="label-chip tab-nps">국민연금</span><b>공식</b> α × (A값 + B값) × (1+0.05n) × MIN(가입년수/20,1) ÷ 12. 출생년도별 지급률 자동 적용</li>
+        <li><span class="label-chip tab-rp">퇴직연금</span><b>월복리</b> + 월 단위 적립. PMT 공식으로 분할 수령 (세전 → 세후)</li>
+        <li><span class="label-chip tab-hp">주택연금</span>한국주택금융공사 종신지급률 (연령별 1억당)로 계산. 만 55세 이상 + 공시가 12억 이하</li>
+        <li><span class="label-chip tab-bp">기초연금</span>국민연금만 소득에 포함 (퇴직·주택연금 제외). 자격 판정 + 연계감액 자동</li>
+        <li><span class="label-chip tab-common">통합</span><b>충당률</b> = 월 합계 ÷ 월 필요 생활비. 100% 이상 충분, 70% 미만 보완 필요</li>
+        <li>⚠️ 본 계산은 추정값. 정확한 수령액은 <b>국민연금공단</b> / <b>한국주택금융공사</b> / <b>복지로</b> 공식 조회 권장</li>
+      </ul>
+    </section>
+
+    <footer>
+      🧮 통합 연금 계산기 v1.0 · Excel 통합연금_수령액_계산기와 동일 공식 ·
+      <a href="https://100lifeplan.fss.or.kr" target="_blank" style="color:#6B21A8;">통합연금포털</a> 통합 조회 권장
+    </footer>
+  </div>
+
+  <script>
+    // ════════════════════════════════════════════════════
+    // 계산 기준값 (2026 추정 — 매년 갱신)
+    // ════════════════════════════════════════════════════
+    const REF = {
+      nps_A: 3089062,           // 국민연금 A값
+      nps_alpha: 1.6,           // 소득대체율 계수
+      spouse_amt: 24465,        // 배우자 연금액
+      dep_amt: 16305,           // 자녀/부모 연금액
+      bp_single: 350000,        // 기초연금 단독
+      bp_couple_per: 280000,    // 기초연금 부부 1인
+      bp_limit_single: 2200000, // 단독 선정기준액
+      bp_limit_couple: 3520000, // 부부 선정기준액
+      bp_min: 175000,           // 기초연금 최소 보장액
+      bp_finance_deduction: 20000000,  // 금융 공제 2000만
+      bp_property_rate: 0.04,   // 재산 환산율 4%
+      region_deduction: {
+        "대도시": 135000000,
+        "중소도시": 85000000,
+        "농어촌": 72500000
+      },
+      // 국민연금 수령 나이별 지급률
+      nps_rates: {
+        60: 0.70, 61: 0.76, 62: 0.82, 63: 0.88, 64: 0.94,
+        65: 1.00, 66: 1.072, 67: 1.144, 68: 1.216, 69: 1.288, 70: 1.36
+      },
+      // 주택연금 1억당 월 수령액 (HF 추정)
+      hp_rates: [
+        [55, 152000], [60, 207000], [65, 253000], [70, 305000],
+        [75, 370000], [80, 451000], [85, 562000], [90, 716000],
+        [95, 933000], [100, 1240000]
+      ]
+    };
+
+    // ════════════════════════════════════════════════════
+    // 입력값 수집
+    // ════════════════════════════════════════════════════
+    function getInputs() {
+      const $ = (id) => document.getElementById(id);
+      const num = (id) => parseFloat($(id).value) || 0;
+      const str = (id) => $(id).value;
+
+      // 현재 나이 계산
+      const birth = new Date($("i_birth").value || "1970-01-01");
+      const now = new Date();
+      let age = now.getFullYear() - birth.getFullYear();
+      if (now < new Date(birth.getFullYear() + age, birth.getMonth(), birth.getDate())) age--;
+
+      return {
+        birth, currentAge: age,
+        retireAge: num("i_retire_age"),
+        lifeAge: num("i_life_age"),
+        need: num("i_need"),
+        inflation: num("i_inflation") / 100,
+        // 국민연금
+        npsMonths: num("i_nps_months"),
+        npsIncome: num("i_nps_income"),
+        npsStart: num("i_nps_start"),
+        npsSpouse: num("i_nps_spouse"),
+        npsDep: num("i_nps_dep"),
+        // 퇴직연금
+        rpCurrent: num("i_rp_current"),
+        rpMonthly: num("i_rp_monthly"),
+        rpYield: num("i_rp_yield") / 100,
+        rpPayYield: num("i_rp_pay_yield") / 100,
+        rpType: str("i_rp_type"),
+        rpDur: num("i_rp_dur"),
+        rpTax: num("i_rp_tax") / 100,
+        // 주택연금
+        hpPrice: num("i_hp_price"),
+        hpAge: num("i_hp_age"),
+        hpType: str("i_hp_type"),
+        hpDur: num("i_hp_dur"),
+        // 기초연금
+        bpRegion: str("i_bp_region"),
+        bpHousehold: str("i_bp_household"),
+        bpSpouseNps: num("i_bp_spouse_nps"),
+        bpWork: num("i_bp_work"),
+        bpEtc: num("i_bp_etc"),
+        bpFin: num("i_bp_fin"),
+        bpCar: num("i_bp_car"),
+        bpDebt: num("i_bp_debt"),
+      };
+    }
+
+    // ════════════════════════════════════════════════════
+    // 1. 국민연금 계산
+    // ════════════════════════════════════════════════════
+    function calcNPS(inp) {
+      const years = inp.npsMonths / 12;
+      const n = Math.max(0, years - 20);
+      const bonus = 1 + 0.05 * n;
+      // 기본연금액 = α × (A + B) × bonus × MIN(years/20, 1) ÷ 12
+      const baseAmt = REF.nps_alpha * (REF.nps_A + inp.npsIncome) * bonus
+                    * Math.min(years / 20, 1) / 12;
+      const depAmt = REF.spouse_amt * inp.npsSpouse + REF.dep_amt * inp.npsDep;
+      const rate = REF.nps_rates[inp.npsStart] || 1.0;
+      const monthly = (baseAmt + depAmt) * rate;
+      return {
+        monthly: Math.round(monthly),
+        baseAmt: Math.round(baseAmt),
+        depAmt: Math.round(depAmt),
+        rate, years,
+        sub: `${inp.npsStart}세 개시 · 지급률 ${(rate*100).toFixed(0)}%`
+      };
+    }
+
+    // ════════════════════════════════════════════════════
+    // 2. 퇴직연금 계산 (월복리 - Excel과 동일)
+    // ════════════════════════════════════════════════════
+    function calcRP(inp) {
+      const accYears = Math.max(0, inp.retireAge - inp.currentAge);
+      const accMonths = accYears * 12;
+      const monthlyRate = inp.rpYield / 12;
+      // 월복리 FV
+      const currentFV = inp.rpCurrent * Math.pow(1 + monthlyRate, accMonths);
+      let monthlyFV = 0;
+      if (monthlyRate > 0) {
+        monthlyFV = inp.rpMonthly * ((Math.pow(1 + monthlyRate, accMonths) - 1) / monthlyRate);
+      } else {
+        monthlyFV = inp.rpMonthly * accMonths;
+      }
+      const totalAmt = currentFV + monthlyFV;
+
+      // 수령 단계
+      const payYears = inp.rpType === "종신형" ? (inp.lifeAge - inp.retireAge) : inp.rpDur;
+      const payMonths = payYears * 12;
+      const payMonthlyRate = inp.rpPayYield / 12;
+      let monthlyPay = 0;
+      if (payMonths > 0 && payMonthlyRate > 0) {
+        monthlyPay = totalAmt * payMonthlyRate / (1 - Math.pow(1 + payMonthlyRate, -payMonths));
+      } else if (payMonths > 0) {
+        monthlyPay = totalAmt / payMonths;
+      }
+      const afterTax = monthlyPay * (1 - inp.rpTax);
+
+      return {
+        monthly: Math.round(afterTax),
+        beforeTax: Math.round(monthlyPay),
+        totalAmt: Math.round(totalAmt),
+        payYears,
+        sub: `은퇴시 총액 ${(totalAmt/100000000).toFixed(2)}억 · ${payYears}년 ${inp.rpType}`
+      };
+    }
+
+    // ════════════════════════════════════════════════════
+    // 3. 주택연금 계산 (연령별 종신지급률)
+    // ════════════════════════════════════════════════════
+    function calcHP(inp) {
+      // 연령별 1억당 월 수령액 (선형 보간)
+      function getRatePerEok(age) {
+        const rates = REF.hp_rates;
+        if (age <= rates[0][0]) return rates[0][1];
+        if (age >= rates[rates.length-1][0]) return rates[rates.length-1][1];
+        for (let i = 0; i < rates.length - 1; i++) {
+          if (age >= rates[i][0] && age < rates[i+1][0]) {
+            // 선형 보간
+            const r1 = rates[i][1], r2 = rates[i+1][1];
+            const a1 = rates[i][0], a2 = rates[i+1][0];
+            return r1 + (r2 - r1) * (age - a1) / (a2 - a1);
+          }
+        }
+        return rates[0][1];
+      }
+      const ratePerEok = getRatePerEok(inp.hpAge);
+      const eok = inp.hpPrice / 100000000;
+      // 종신지급 월 수령액
+      const lifetimeMonthly = eok * ratePerEok;
+      // 확정기간형은 약 1.5배
+      const fixedMonthly = lifetimeMonthly * 1.5;
+      const monthly = inp.hpType === "종신지급" ? lifetimeMonthly : fixedMonthly;
+      const payDur = inp.hpType === "종신지급" ? (100 - inp.hpAge) : inp.hpDur;
+      return {
+        monthly: Math.round(monthly),
+        payDur,
+        sub: `${inp.hpAge}세 가입 · ${inp.hpType} (${payDur}년)`
+      };
+    }
+
+    // ════════════════════════════════════════════════════
+    // 4. 기초연금 계산 (자격 판정 + 연계감액)
+    // ════════════════════════════════════════════════════
+    function calcBP(inp, npsMonthly) {
+      // 소득평가액
+      const workIncome = Math.max(0, inp.bpWork - 1100000) * 0.7;
+      const incomeEval = npsMonthly + inp.bpSpouseNps + workIncome + inp.bpEtc;
+
+      // 재산 환산
+      const baseDeduct = REF.region_deduction[inp.bpRegion];
+      const general = Math.max(0, inp.hpPrice + inp.bpCar - inp.bpDebt - baseDeduct);
+      const finance = Math.max(0, inp.bpFin - REF.bp_finance_deduction);
+      const generalMonthly = general * REF.bp_property_rate / 12;
+      const financeMonthly = finance * REF.bp_property_rate / 12;
+      const propEval = generalMonthly + financeMonthly;
+
+      const totalIncome = incomeEval + propEval;
+      const limit = inp.bpHousehold === "단독" ? REF.bp_limit_single : REF.bp_limit_couple;
+      const qualified = totalIncome <= limit;
+
+      let myAmt = 0, spouseAmt = 0;
+      if (qualified) {
+        const base = inp.bpHousehold === "단독" ? REF.bp_single : REF.bp_couple_per;
+        // 본인 연계감액
+        const myReduction = Math.min(base - REF.bp_min, Math.max(0, (npsMonthly - 525000) * 0.5));
+        myAmt = Math.max(REF.bp_min, base - myReduction);
+        // 배우자
+        if (inp.bpHousehold === "부부") {
+          const spouseRed = Math.min(base - REF.bp_min, Math.max(0, (inp.bpSpouseNps - 525000) * 0.5));
+          spouseAmt = Math.max(REF.bp_min, base - spouseRed);
+        }
+      }
+
+      return {
+        monthly: Math.round(myAmt + spouseAmt),
+        myAmt: Math.round(myAmt),
+        spouseAmt: Math.round(spouseAmt),
+        qualified,
+        totalIncome: Math.round(totalIncome),
+        limit,
+        sub: qualified
+          ? `✅ 자격 (소득인정 ${(totalIncome/10000).toFixed(0)}만/${(limit/10000).toFixed(0)}만)`
+          : `❌ 자격 미달 (소득 ${(totalIncome/10000).toFixed(0)}만 > ${(limit/10000).toFixed(0)}만)`
+      };
+    }
+
+    // ════════════════════════════════════════════════════
+    // 통합 현금흐름 (60~95세 연도별)
+    // ════════════════════════════════════════════════════
+    function calcCashflow(inp, nps, rp, hp, bp) {
+      const ages = [], npsArr = [], rpArr = [], hpArr = [], bpArr = [], sumArr = [], needArr = [];
+      for (let age = 60; age <= 95; age++) {
+        const yearsFromNow = age - inp.currentAge;
+        const inflFactor = Math.pow(1 + inp.inflation, yearsFromNow);
+
+        const npsVal = age >= inp.npsStart ? nps.monthly * inflFactor : 0;
+        const rpVal = (age >= inp.retireAge && age < inp.retireAge + rp.payYears) ? rp.monthly : 0;
+        const hpVal = (age >= inp.hpAge && age < inp.hpAge + hp.payDur) ? hp.monthly : 0;
+        const bpVal = age >= 65 ? bp.monthly * inflFactor : 0;
+        const sum = npsVal + rpVal + hpVal + bpVal;
+        const need = inp.need * inflFactor;
+
+        ages.push(age);
+        npsArr.push(Math.round(npsVal));
+        rpArr.push(Math.round(rpVal));
+        hpArr.push(Math.round(hpVal));
+        bpArr.push(Math.round(bpVal));
+        sumArr.push(Math.round(sum));
+        needArr.push(Math.round(need));
+      }
+      return { ages, npsArr, rpArr, hpArr, bpArr, sumArr, needArr };
+    }
+
+    // ════════════════════════════════════════════════════
+    // UI 렌더링
+    // ════════════════════════════════════════════════════
+    let chart = null;
+
+    function fmt(n) {
+      return Math.round(n).toLocaleString('ko-KR');
+    }
+
+    function render() {
+      const inp = getInputs();
+      const nps = calcNPS(inp);
+      const rp  = calcRP(inp);
+      const hp  = calcHP(inp);
+      const bp  = calcBP(inp, nps.monthly);
+
+      const total = nps.monthly + rp.monthly + hp.monthly + bp.monthly;
+      const diff = total - inp.need;
+      const ratio = inp.need > 0 ? total / inp.need : 0;
+
+      // 카드 갱신
+      document.getElementById("r_nps").textContent = fmt(nps.monthly);
+      document.getElementById("r_nps_sub").textContent = nps.sub;
+      document.getElementById("r_rp").textContent = fmt(rp.monthly);
+      document.getElementById("r_rp_sub").textContent = rp.sub;
+      document.getElementById("r_hp").textContent = fmt(hp.monthly);
+      document.getElementById("r_hp_sub").textContent = hp.sub;
+      document.getElementById("r_bp").textContent = fmt(bp.monthly);
+      document.getElementById("r_bp_sub").textContent = bp.sub;
+
+      // 종합 카드
+      document.getElementById("r_total").textContent = fmt(total);
+      document.getElementById("r_need").textContent = fmt(inp.need);
+      document.getElementById("r_diff").textContent = (diff >= 0 ? "+" : "") + fmt(diff);
+      document.getElementById("r_diff_sub").textContent = diff >= 0 ? "✅ 잉여" : "⚠️ 부족";
+
+      // 게이지
+      const ratioPct = Math.min(ratio * 100, 200);
+      const gauge = document.getElementById("r_gauge");
+      gauge.style.width = (ratioPct / 2) + "%";  // 최대 100%까지 표시 (200%면 가득참)
+      gauge.classList.remove("warn", "bad");
+      if (ratio < 0.7) gauge.classList.add("bad");
+      else if (ratio < 1.0) gauge.classList.add("warn");
+      document.getElementById("r_gauge_text").textContent = (ratio * 100).toFixed(1) + "%";
+
+      // 평가
+      let verdict;
+      if (ratio >= 1.5) verdict = "🟢 매우 충분 — 여유 있는 노후";
+      else if (ratio >= 1.0) verdict = "🟢 충분 — 안정적인 노후 자금";
+      else if (ratio >= 0.7) verdict = "🟡 부족 — 개인연금/저축 보완 권장";
+      else verdict = "🔴 매우 부족 — 긴급 자산 형성 필요";
+      document.getElementById("r_verdict").textContent = verdict;
+
+      // 차트
+      const cf = calcCashflow(inp, nps, rp, hp, bp);
+      if (chart) chart.destroy();
+      const ctx = document.getElementById("cashflowChart").getContext("2d");
+      const isMobile = window.matchMedia('(max-width: 640px)').matches;
+      chart = new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: cf.ages.map(a => a + "세"),
+          datasets: [
+            { label: '🏛️ 국민연금', data: cf.npsArr, borderColor: '#14B8A6', backgroundColor: 'rgba(20,184,166,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
+            { label: '💼 퇴직연금', data: cf.rpArr, borderColor: '#5B9BD5', backgroundColor: 'rgba(91,155,213,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
+            { label: '🏠 주택연금', data: cf.hpArr, borderColor: '#ED7D31', backgroundColor: 'rgba(237,125,49,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
+            { label: '🪙 기초연금', data: cf.bpArr, borderColor: '#10B981', backgroundColor: 'rgba(16,185,129,0.1)', borderWidth: 2, fill: false, tension: 0.2 },
+            { label: '💎 월 합계', data: cf.sumArr, borderColor: '#6B21A8', backgroundColor: 'rgba(107,33,168,0.15)', borderWidth: 3, fill: true, tension: 0.2 },
+            { label: '📌 월 필요', data: cf.needArr, borderColor: '#EF4444', borderWidth: 2, borderDash: [5, 5], fill: false, tension: 0 }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: 'index', intersect: false },
+          plugins: {
+            legend: {
+              position: isMobile ? 'bottom' : 'right',
+              labels: { font: { size: isMobile ? 11 : 13, weight: 'bold' } }
+            },
+            tooltip: {
+              callbacks: {
+                label: function(ctx) {
+                  return ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + '원';
+                }
+              }
+            }
+          },
+          scales: {
+            y: {
+              ticks: {
+                callback: function(value) {
+                  return (value / 10000).toLocaleString() + '만';
+                }
+              }
+            }
+          }
+        }
+      });
+    }
+
+    // 모든 입력 변경 시 자동 재계산
+    document.querySelectorAll('input, select').forEach(el => {
+      el.addEventListener('input', render);
+      el.addEventListener('change', render);
+    });
+
+    // 화면 회전/리사이즈 시 차트 재계산
+    let resizeTimer;
+    window.addEventListener('resize', () => {
+      clearTimeout(resizeTimer);
+      resizeTimer = setTimeout(render, 200);
+    });
+
+    // 초기 렌더
+    render();
+  </script>
+</body>
+</html>

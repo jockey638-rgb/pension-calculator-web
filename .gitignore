@@ -1,0 +1,17 @@
+# OS
+Thumbs.db
+.DS_Store
+
+# Editors
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+
+# Python (if any helpers added)
+__pycache__/
+*.pyc
+.venv/
+venv/
