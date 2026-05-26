@@ -299,25 +299,13 @@
       background: #E2EFDA;
       border-top: 1px solid #CBD5E1;
     }
-    /* 합계 행: 첫 셀(아이콘) + 둘째 셀(라벨) 분리 — colspan 미사용 */
-    table.cashflow-table tfoot td.label-icon {
-      text-align: center;
-      font-size: 18px;
-      padding: 8px 4px;
-    }
-    table.cashflow-table tfoot td.label-col {
-      text-align: center;
-      line-height: 1.25;
-      white-space: normal;
-      font-size: 11px;
-      padding: 6px 4px;
-    }
-    table.cashflow-table tfoot td.label-col .foot-unit {
-      display: block;
-      font-weight: 500;
-      font-size: 9.5px;
-      color: #6B7280;
-      margin-top: 2px;
+    /* 합계 행 라벨 — 데이터 행과 동일 셀 구조 (년도+나이 자리) */
+    table.cashflow-table tfoot td.foot-label {
+      font-weight: 800;
+      color: #1a2b4a;
+      font-size: 12px;
+      padding: 10px 4px;
+      white-space: nowrap;
     }
     .table-legend {
       margin-top: 8px;
@@ -673,7 +661,9 @@
         <span class="legend-item"><span class="ratio-pill fair">100~120%</span> 충분</span>
         <span class="legend-item"><span class="ratio-pill warn">70~100%</span> 부족</span>
         <span class="legend-item"><span class="ratio-pill bad">&lt;70%</span> 매우 부족</span>
-        <span class="legend-item">📌 모든 금액 단위: 원/월 · 인플레이션 반영</span>
+        <span class="legend-item">📌 데이터 행: 원/월 · 인플레이션 반영</span>
+        <span class="legend-item">📊 평균 행: 36년 월 평균 (원/월)</span>
+        <span class="legend-item">💰 누적 행: 36년 합계 (원, 연단위)</span>
       </div>
     </section>
 
@@ -1079,11 +1069,12 @@
       const totalDiffCls = totalDiff >= 0 ? "diff-pos" : "diff-neg";
       const totalDiffSign = totalDiff >= 0 ? "+" : "";
 
-      // ⭐ colspan 사용하지 않음 — 첫 두 컬럼에 아이콘 + 라벨 분리
+      // ⭐ 데이터 행과 100% 동일한 셀 구조 — 첫 컬럼=년도 자리, 둘째=나이 자리
+      // (데이터 행: "2067" | "95세"  → 합계 행: "평균" | "📊 36년")
       tfoot.innerHTML = `
         <tr class="month-avg">
-          <td class="label-icon">📊</td>
-          <td class="label-col">월 평균<br><span class="foot-unit">${n}년<br>(원/월)</span></td>
+          <td class="year-col foot-label">평균</td>
+          <td class="age-col foot-label">📊 ${n}년</td>
           <td>${fmt(avgNps)}</td>
           <td>${fmt(avgRp)}</td>
           <td>${fmt(avgHp)}</td>
@@ -1096,8 +1087,8 @@
           </td>
         </tr>
         <tr class="total-sum">
-          <td class="label-icon">💰</td>
-          <td class="label-col">총 누적<br><span class="foot-unit">${n}년<br>(원/년)</span></td>
+          <td class="year-col foot-label">누적</td>
+          <td class="age-col foot-label">💰 ${n}년</td>
           <td>${fmt(sumNps * 12)}</td>
           <td>${fmt(sumRp * 12)}</td>
           <td>${fmt(sumHp * 12)}</td>
