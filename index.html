@@ -193,6 +193,103 @@
       height: 380px;
     }
 
+    /* ───── 통합현금흐름 표 ───── */
+    .cashflow-table-wrap {
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      margin-top: 14px;
+      border: 1px solid #ECEFF4;
+      border-radius: 8px;
+    }
+    table.cashflow-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      min-width: 760px;
+    }
+    table.cashflow-table thead th {
+      background: #F8FAFD;
+      color: #1a2b4a;
+      font-weight: 700;
+      padding: 9px 8px;
+      text-align: center;
+      border-bottom: 2px solid #CBD5E1;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+      font-size: 11.5px;
+      white-space: nowrap;
+    }
+    table.cashflow-table tbody td {
+      padding: 6px 8px;
+      text-align: right;
+      border-bottom: 1px solid #F0F2F5;
+      font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+    table.cashflow-table tbody td.age-col {
+      text-align: center;
+      color: #6B7280;
+      font-weight: 600;
+    }
+    table.cashflow-table tbody td.year-col {
+      text-align: center;
+      color: #94A3B8;
+      font-size: 11px;
+    }
+    table.cashflow-table tbody tr:hover { background: #F8FAFD; }
+    table.cashflow-table tbody tr.even { background: #FAFBFC; }
+    table.cashflow-table tbody td.sum-col {
+      font-weight: 700;
+      color: #1a2b4a;
+      background: rgba(107,33,168,0.04);
+    }
+    table.cashflow-table tbody td.diff-pos { color: #059669; font-weight: 600; }
+    table.cashflow-table tbody td.diff-neg { color: #DC2626; font-weight: 600; }
+    table.cashflow-table tbody td.ratio-cell {
+      text-align: center;
+      font-weight: 700;
+    }
+    .ratio-pill {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+    }
+    .ratio-pill.good     { background: #D1FAE5; color: #065F46; }
+    .ratio-pill.fair     { background: #DBEAFE; color: #1E3A8A; }
+    .ratio-pill.warn     { background: #FEF3C7; color: #92400E; }
+    .ratio-pill.bad      { background: #FEE2E2; color: #991B1B; }
+    table.cashflow-table tfoot td {
+      background: #E2EFDA;
+      font-weight: 800;
+      padding: 11px 8px;
+      border-top: 2px solid #6B21A8;
+      color: #1a2b4a;
+    }
+    table.cashflow-table tfoot td.label-col {
+      text-align: center;
+    }
+    .table-legend {
+      margin-top: 8px;
+      font-size: 11px;
+      color: #6B7280;
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    .table-legend .legend-item {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    @media (max-width: 640px) {
+      table.cashflow-table { font-size: 11px; min-width: 720px; }
+      table.cashflow-table thead th { padding: 7px 5px; font-size: 10.5px; }
+      table.cashflow-table tbody td { padding: 5px 5px; }
+    }
+
     /* ───── 가이드 ───── */
     .guide-list { list-style: none; }
     .guide-list li {
@@ -480,6 +577,42 @@
       </div>
     </section>
 
+    <!-- 통합 현금흐름 표 (Excel 시트와 동일 구조) -->
+    <section class="card">
+      <h2>📋 통합 노후 현금흐름 표 (연도별)</h2>
+      <div class="cashflow-table-wrap">
+        <table class="cashflow-table">
+          <thead>
+            <tr>
+              <th>년도</th>
+              <th>나이</th>
+              <th>🏛️ 국민연금</th>
+              <th>💼 퇴직연금</th>
+              <th>🏠 주택연금</th>
+              <th>🪙 기초연금</th>
+              <th>💎 월 합계</th>
+              <th>📌 월 필요</th>
+              <th>잉여/부족</th>
+              <th>충당률</th>
+            </tr>
+          </thead>
+          <tbody id="cf_tbody">
+            <!-- JS에서 동적 생성 -->
+          </tbody>
+          <tfoot id="cf_tfoot">
+            <!-- 합계 행 -->
+          </tfoot>
+        </table>
+      </div>
+      <div class="table-legend">
+        <span class="legend-item"><span class="ratio-pill good">≥120%</span> 매우 충분</span>
+        <span class="legend-item"><span class="ratio-pill fair">100~120%</span> 충분</span>
+        <span class="legend-item"><span class="ratio-pill warn">70~100%</span> 부족</span>
+        <span class="legend-item"><span class="ratio-pill bad">&lt;70%</span> 매우 부족</span>
+        <span class="legend-item">📌 모든 금액 단위: 원/월 · 인플레이션 반영</span>
+      </div>
+    </section>
+
     <!-- 가이드 -->
     <section class="card">
       <h2>📖 사용 가이드</h2>
@@ -760,6 +893,89 @@
       return Math.round(n).toLocaleString('ko-KR');
     }
 
+    // ════════════════════════════════════════════════════
+    // 통합현금흐름 표 렌더링 (Excel 시트와 동일 구조)
+    // ════════════════════════════════════════════════════
+    function renderCashflowTable(inp, cf) {
+      const tbody = document.getElementById("cf_tbody");
+      const tfoot = document.getElementById("cf_tfoot");
+      tbody.innerHTML = "";
+      tfoot.innerHTML = "";
+
+      const baseYear = (new Date(inp.birth).getFullYear()) || new Date().getFullYear();
+
+      let sumNps = 0, sumRp = 0, sumHp = 0, sumBp = 0, sumTotal = 0, sumNeed = 0;
+
+      for (let i = 0; i < cf.ages.length; i++) {
+        const age = cf.ages[i];
+        const npsV = cf.npsArr[i];
+        const rpV  = cf.rpArr[i];
+        const hpV  = cf.hpArr[i];
+        const bpV  = cf.bpArr[i];
+        const sumV = cf.sumArr[i];
+        const needV = cf.needArr[i];
+        const diff = sumV - needV;
+        const ratio = needV > 0 ? (sumV / needV) : 0;
+
+        sumNps += npsV; sumRp += rpV; sumHp += hpV; sumBp += bpV;
+        sumTotal += sumV; sumNeed += needV;
+
+        // 충당률 색상
+        let ratioCls = "bad";
+        if (ratio >= 1.2) ratioCls = "good";
+        else if (ratio >= 1.0) ratioCls = "fair";
+        else if (ratio >= 0.7) ratioCls = "warn";
+
+        const diffCls = diff >= 0 ? "diff-pos" : "diff-neg";
+        const diffSign = diff >= 0 ? "+" : "";
+        const evenCls = (age % 2 === 0) ? "even" : "";
+
+        const tr = document.createElement("tr");
+        tr.className = evenCls;
+        tr.innerHTML = `
+          <td class="year-col">${baseYear + age}</td>
+          <td class="age-col">${age}세</td>
+          <td>${npsV ? fmt(npsV) : "—"}</td>
+          <td>${rpV ? fmt(rpV) : "—"}</td>
+          <td>${hpV ? fmt(hpV) : "—"}</td>
+          <td>${bpV ? fmt(bpV) : "—"}</td>
+          <td class="sum-col">${fmt(sumV)}</td>
+          <td>${fmt(needV)}</td>
+          <td class="${diffCls}">${diffSign}${fmt(diff)}</td>
+          <td class="ratio-cell">
+            <span class="ratio-pill ${ratioCls}">${(ratio * 100).toFixed(0)}%</span>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      }
+
+      // 합계 행 (월 단위 × 12 = 연 단위 누적)
+      const totalDiff = sumTotal - sumNeed;
+      const totalDiffSign = totalDiff >= 0 ? "+" : "";
+      const totalDiffCls = totalDiff >= 0 ? "diff-pos" : "diff-neg";
+      const totalRatio = sumNeed > 0 ? (sumTotal / sumNeed) : 0;
+      let totalRatioCls = "bad";
+      if (totalRatio >= 1.2) totalRatioCls = "good";
+      else if (totalRatio >= 1.0) totalRatioCls = "fair";
+      else if (totalRatio >= 0.7) totalRatioCls = "warn";
+
+      tfoot.innerHTML = `
+        <tr>
+          <td class="label-col" colspan="2">📊 누적 합계<br><span style="font-weight:normal;font-size:10px;color:#6B7280;">(60~95세, 연 단위)</span></td>
+          <td>${fmt(sumNps * 12)}</td>
+          <td>${fmt(sumRp * 12)}</td>
+          <td>${fmt(sumHp * 12)}</td>
+          <td>${fmt(sumBp * 12)}</td>
+          <td>${fmt(sumTotal * 12)}</td>
+          <td>${fmt(sumNeed * 12)}</td>
+          <td class="${totalDiffCls}">${totalDiffSign}${fmt(totalDiff * 12)}</td>
+          <td class="ratio-cell">
+            <span class="ratio-pill ${totalRatioCls}">${(totalRatio * 100).toFixed(0)}%</span>
+          </td>
+        </tr>
+      `;
+    }
+
     function render() {
       const inp = getInputs();
       const nps = calcNPS(inp);
@@ -804,8 +1020,9 @@
       else verdict = "🔴 매우 부족 — 긴급 자산 형성 필요";
       document.getElementById("r_verdict").textContent = verdict;
 
-      // 차트
+      // 차트 + 표 데이터
       const cf = calcCashflow(inp, nps, rp, hp, bp);
+      renderCashflowTable(inp, cf);
       if (chart) chart.destroy();
       const ctx = document.getElementById("cashflowChart").getContext("2d");
       const isMobile = window.matchMedia('(max-width: 640px)').matches;
