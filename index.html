@@ -334,9 +334,12 @@
       gap: 4px;
     }
     @media (max-width: 640px) {
-      table.cashflow-table { font-size: 11px; min-width: 720px; }
+      /* 모바일에서는 가로 스크롤로 표 전체를 보도록 — 너비 그대로 유지 */
+      table.cashflow-table { font-size: 11px; }
       table.cashflow-table thead th { padding: 7px 5px; font-size: 10.5px; }
       table.cashflow-table tbody td { padding: 5px 5px; }
+      table.cashflow-table tfoot td.label-col { font-size: 10px; }
+      table.cashflow-table tfoot td.label-icon { font-size: 14px; }
     }
 
     /* ───── 가이드 ───── */
@@ -632,29 +635,29 @@
       <div class="cashflow-table-wrap">
         <table class="cashflow-table">
           <colgroup>
-            <col class="col-year">
-            <col class="col-age">
-            <col class="col-nps">
-            <col class="col-rp">
-            <col class="col-hp">
-            <col class="col-bp">
-            <col class="col-sum">
-            <col class="col-need">
-            <col class="col-diff">
-            <col class="col-ratio">
+            <col style="width:60px">
+            <col style="width:55px">
+            <col style="width:95px">
+            <col style="width:95px">
+            <col style="width:95px">
+            <col style="width:95px">
+            <col style="width:105px">
+            <col style="width:105px">
+            <col style="width:105px">
+            <col style="width:90px">
           </colgroup>
           <thead>
             <tr>
-              <th>년도</th>
-              <th>나이</th>
-              <th>🏛️ 국민연금</th>
-              <th>💼 퇴직연금</th>
-              <th>🏠 주택연금</th>
-              <th>🪙 기초연금</th>
-              <th>💎 월 합계</th>
-              <th>📌 월 필요</th>
-              <th>잉여/부족</th>
-              <th>충당률</th>
+              <th style="width:60px">년도</th>
+              <th style="width:55px">나이</th>
+              <th style="width:95px">🏛️ 국민연금</th>
+              <th style="width:95px">💼 퇴직연금</th>
+              <th style="width:95px">🏠 주택연금</th>
+              <th style="width:95px">🪙 기초연금</th>
+              <th style="width:105px">💎 월 합계</th>
+              <th style="width:105px">📌 월 필요</th>
+              <th style="width:105px">잉여/부족</th>
+              <th style="width:90px">충당률</th>
             </tr>
           </thead>
           <tbody id="cf_tbody">
