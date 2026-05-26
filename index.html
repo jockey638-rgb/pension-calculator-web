@@ -299,17 +299,23 @@
       background: #E2EFDA;
       border-top: 1px solid #CBD5E1;
     }
+    /* 합계 행: 첫 셀(아이콘) + 둘째 셀(라벨) 분리 — colspan 미사용 */
+    table.cashflow-table tfoot td.label-icon {
+      text-align: center;
+      font-size: 18px;
+      padding: 8px 4px;
+    }
     table.cashflow-table tfoot td.label-col {
       text-align: center;
-      line-height: 1.3;
-      white-space: normal;       /* colspan=2 좁은 셀 안에서 줄바꿈 허용 */
-      font-size: 11.5px;
-      padding: 8px 6px;
+      line-height: 1.25;
+      white-space: normal;
+      font-size: 11px;
+      padding: 6px 4px;
     }
     table.cashflow-table tfoot td.label-col .foot-unit {
       display: block;
       font-weight: 500;
-      font-size: 10px;
+      font-size: 9.5px;
       color: #6B7280;
       margin-top: 2px;
     }
@@ -1070,12 +1076,11 @@
       const totalDiffCls = totalDiff >= 0 ? "diff-pos" : "diff-neg";
       const totalDiffSign = totalDiff >= 0 ? "+" : "";
 
+      // ⭐ colspan 사용하지 않음 — 첫 두 컬럼에 아이콘 + 라벨 분리
       tfoot.innerHTML = `
         <tr class="month-avg">
-          <td class="label-col" colspan="2">
-            📊 월 평균
-            <span class="foot-unit">${n}년 평균 (원/월)</span>
-          </td>
+          <td class="label-icon">📊</td>
+          <td class="label-col">월 평균<br><span class="foot-unit">${n}년<br>(원/월)</span></td>
           <td>${fmt(avgNps)}</td>
           <td>${fmt(avgRp)}</td>
           <td>${fmt(avgHp)}</td>
@@ -1088,10 +1093,8 @@
           </td>
         </tr>
         <tr class="total-sum">
-          <td class="label-col" colspan="2">
-            💰 총 누적
-            <span class="foot-unit">${n}년 합계 (원, 연 단위)</span>
-          </td>
+          <td class="label-icon">💰</td>
+          <td class="label-col">총 누적<br><span class="foot-unit">${n}년<br>(원/년)</span></td>
           <td>${fmt(sumNps * 12)}</td>
           <td>${fmt(sumRp * 12)}</td>
           <td>${fmt(sumHp * 12)}</td>
